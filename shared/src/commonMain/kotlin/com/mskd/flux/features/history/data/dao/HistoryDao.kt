@@ -12,7 +12,8 @@ import kotlinx.coroutines.flow.Flow
 interface HistoryDao {
 
     @Query("""
-        SELECT history.*, medias.*, artworks.title AS artworkTitle
+        SELECT history.*, medias.*, artworks.title AS artworkTitle,
+            COALESCE(artworks.customPosterPath, artworks.imagePath) AS artworkPosterPath
         FROM history
         INNER JOIN medias ON history.mediaId = medias.id AND history.historyArtworkId = medias.artworkId
         INNER JOIN artworks ON medias.artworkId = artworks.id

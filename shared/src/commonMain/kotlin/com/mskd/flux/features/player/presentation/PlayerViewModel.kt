@@ -424,19 +424,12 @@ class PlayerViewModel<out T>(
 
     private suspend fun onBackTap() {
 
-        when {
-            currentSession == null -> {
-                _event.send(PlayerEvent.BackToPreviousScreen)
-            }
-            _interface.value.showInterface -> {
-                playerManager.pause()
-                saveTime()
-                _event.send(PlayerEvent.BackToPreviousScreen)
-            }
-            else -> {
-                changeInterfaceVisibility()
-            }
+        // One press leaves, whether or not the controls are showing (a first press used to only show them)
+        if (currentSession != null) {
+            playerManager.pause()
+            saveTime()
         }
+        _event.send(PlayerEvent.BackToPreviousScreen)
 
     }
 

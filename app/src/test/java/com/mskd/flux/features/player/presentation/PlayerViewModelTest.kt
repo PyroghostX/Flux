@@ -281,11 +281,8 @@ class PlayerViewModelTest : FunSpec({
                 viewModel.event.test {
                     viewModel.handleIntent(PlayerIntent.OnBackTap)
 
-                    if (testCase.interfaceShowed) {
-                        awaitItem() shouldBe PlayerEvent.BackToPreviousScreen
-                    } else {
-                        expectNoEvents()
-                    }
+                    // One press leaves either way
+                    awaitItem() shouldBe PlayerEvent.BackToPreviousScreen
                 }
 
                 cancelAndIgnoreRemainingEvents()

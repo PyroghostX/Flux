@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -28,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.mskd.flux.core.model.artwork.Episode
 import com.mskd.flux.features.catalog.presentation.CatalogIntent
 import com.mskd.flux.features.history.data.mapper.toHistoryEntry
@@ -38,7 +38,6 @@ import com.mskd.flux.ui.FluxPreview
 import com.mskd.flux.ui.FluxThemePreview
 import com.mskd.flux.ui.bleedHorizontal
 import com.mskd.flux.ui.components.ProgressStatusBar
-import com.mskd.flux.ui.fillMaxWidthWithLimit
 import com.mskd.flux.ui.image.FluxImage
 import com.mskd.flux.ui.text.Text
 import com.mskd.flux.ui.theme.FluxUI
@@ -113,7 +112,7 @@ fun CatalogHistoryItem(
     val shape = LocalUiShapes.current.corners
 
     Surface(
-        modifier = modifier.fillMaxWidthWithLimit(fraction = .8f, max = 450.dp),
+        modifier = modifier.width(FluxUI.Dimension.itemWidth),
         shape = shape,
         onClick = { sendIntent(CatalogIntent.PlayMedia(media = media)) },
         shadowElevation = FluxUI.Elevation.itemShadow,
@@ -132,15 +131,15 @@ fun CatalogHistoryItem(
                 modifier = Modifier
                     .clip(shape)
                     .fillMaxWidth()
-                    .aspectRatio(FluxUI.Ratio.landscape),
+                    .aspectRatio(FluxUI.Dimension.itemRatio),
                 contentAlignment = Alignment.BottomCenter
             ) {
 
+                // Always the show's or movie's poster, never a frame from the file
                 FluxImage(
                     modifier = Modifier.fillMaxSize(),
-                    media = media,
-                    contentDescription = media.title,
-                    videoFrame = true
+                    path = entry.posterPath,
+                    contentDescription = media.title
                 )
 
                 ProgressStatusBar(

@@ -35,6 +35,7 @@ import com.mskd.flux.navigation.domain.Route
 import com.mskd.flux.navigation.domain.navConfig
 import com.mskd.flux.navigation.domain.navigateToTab
 import com.mskd.flux.navigation.domain.popScreen
+import com.mskd.flux.navigation.domain.popToTab
 import com.mskd.flux.navigation.ui.navigationBar.FluxNavigationBar
 import com.mskd.flux.report.CrashLogger
 import com.mskd.flux.ui.theme.createColorScheme
@@ -62,6 +63,11 @@ fun FluxNavigation(
                 transitions = Transition.Forward to Transition.Backward
                 crashLogger.addBreadcrumb(message = "pop to ${backStack.getOrNull(backStack.lastIndex - 1) as? Route}")
                 backStack.popScreen()
+            },
+            backToTab = {
+                transitions = Transition.Forward to Transition.Backward
+                crashLogger.addBreadcrumb(message = "pop to the tab under ${backStack.lastOrNull() as? Route}")
+                backStack.popToTab()
             },
             clearAndNavigate = { route ->
                 backStack.clear()

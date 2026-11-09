@@ -9,7 +9,6 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumExtendedFloatingActionButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +29,11 @@ import flux.shared.generated.resources.ic_rewind_30
 import flux.shared.generated.resources.ic_rewind_5
 import org.jetbrains.compose.resources.painterResource
 
+private val PLAY_BUTTON_SIZE = 120.dp
+private val PLAY_ICON_SIZE = 64.dp
+private val SEEK_BUTTON_SIZE = 80.dp
+private val SEEK_ICON_SIZE = 36.dp
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PlayerControlButtons(
@@ -49,7 +53,9 @@ fun PlayerControlButtons(
     ) {
 
         FloatingActionButton(
-            modifier = Modifier.graphicsLayer { translationX = size.width * (1f - slide()) },
+            modifier = Modifier
+                .size(SEEK_BUTTON_SIZE)
+                .graphicsLayer { translationX = size.width * (1f - slide()) },
             onClick = { sendIntent(PlayerIntent.OnFastRewind) },
             shape = FloatingActionButtonDefaults.largeShape,
             containerColor = MaterialTheme.colorScheme.tertiaryContainer
@@ -60,24 +66,29 @@ fun PlayerControlButtons(
                 else -> Res.drawable.ic_rewind_30
             }
             Icon(
+                modifier = Modifier.size(SEEK_ICON_SIZE),
                 painter = painterResource(icon),
                 contentDescription = "rewind button"
             )
         }
 
-        MediumExtendedFloatingActionButton(
+        // Big play/pause in the middle: an easy target on a car screen
+        FloatingActionButton(
+            modifier = Modifier.size(PLAY_BUTTON_SIZE),
             onClick = { sendIntent(PlayerIntent.TogglePlayButton) },
-            shape = FloatingActionButtonDefaults.largeExtendedFabShape
+            shape = FloatingActionButtonDefaults.largeShape
         ) {
             Icon(
-                modifier = Modifier.size(28.dp),
+                modifier = Modifier.size(PLAY_ICON_SIZE),
                 painter = painterResource(if (isPlaying) Res.drawable.ic_pause else Res.drawable.ic_play),
                 contentDescription = "play button"
             )
         }
 
         FloatingActionButton(
-            modifier = Modifier.graphicsLayer { translationX = -size.width * (1f - slide()) },
+            modifier = Modifier
+                .size(SEEK_BUTTON_SIZE)
+                .graphicsLayer { translationX = -size.width * (1f - slide()) },
             onClick = { sendIntent(PlayerIntent.OnFastForward) },
             shape = FloatingActionButtonDefaults.largeShape,
             containerColor = MaterialTheme.colorScheme.tertiaryContainer
@@ -88,6 +99,7 @@ fun PlayerControlButtons(
                 else -> Res.drawable.ic_forward_30
             }
             Icon(
+                modifier = Modifier.size(SEEK_ICON_SIZE),
                 painter = painterResource(icon),
                 contentDescription = "forward button"
             )

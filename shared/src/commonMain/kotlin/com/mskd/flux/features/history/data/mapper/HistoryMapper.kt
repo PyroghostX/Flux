@@ -12,7 +12,8 @@ import kotlin.time.Clock
 fun HistoryProjection.toDomain() = HistoryEntry(
     media = this.media.toDomain(),
     timestamp = this.history.timestamp,
-    title = this.artworkTitle
+    title = this.artworkTitle,
+    posterPath = this.artworkPosterPath.orEmpty()
 )
 
 fun Media.toHistoryEntity() = HistoryEntity(

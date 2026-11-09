@@ -97,7 +97,8 @@ class MainActivity : ComponentActivity() {
                         entry<Route.Player> { entry ->
                             PlayerScreen(
                                 params = entry.params,
-                                onBack = { nav.onBack() },
+                                // Leaving the player goes straight home, not back through the show page
+                                onBack = { nav.backToTab() },
                             )
                         }
                         entry<Route.Sources> { entry ->

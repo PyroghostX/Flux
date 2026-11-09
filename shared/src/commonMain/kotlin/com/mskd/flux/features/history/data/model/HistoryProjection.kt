@@ -6,5 +6,6 @@ import com.mskd.flux.core.database.data.model.MediaEntity
 data class HistoryProjection(
     @Embedded val history: HistoryEntity,
     @Embedded val media: MediaEntity,
-    val artworkTitle: String
+    val artworkTitle: String,
+    val artworkPosterPath: String? = null
 )
