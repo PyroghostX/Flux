@@ -1,5 +1,6 @@
 package com.mskd.flux.features.show.presentation
 
+import com.mskd.flux.utils.extensions.firstEpisodeToWatch
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mskd.flux.core.model.artwork.ContentType
@@ -98,6 +99,7 @@ class ShowViewModel(
             is ShowIntent.OnSeasonClick -> navigateToSeason(season = intent.season, rgb = intent.rgb)
             is ShowIntent.OnPersonClick -> _event.emit(ShowEvent.NavigateToPerson(person = intent.person))
             ShowIntent.OnArtworkImageClick -> navigateToGallery()
+            ShowIntent.PlayNext -> playNext()
 
             // Dialogs
             ShowIntent.CloseDialog -> closeDialog()
@@ -121,6 +123,11 @@ class ShowViewModel(
     private suspend fun navigateToGallery() {
         if (!tokenDataStore.tokenIsAvailable()) return
         _event.emit(ShowEvent.NavigateToGallery(artworkId = artworkId, contentType = ContentType.SHOW))
+    }
+
+    private suspend fun playNext() {
+        val episode = showContent?.fullShow?.episodes?.filter { it.isAvailable }?.firstEpisodeToWatch() ?: return
+        _event.emit(ShowEvent.PlayMedia(media = episode))
     }
 
     private suspend fun navigateToSeason(season: Int, rgb: Int?) {

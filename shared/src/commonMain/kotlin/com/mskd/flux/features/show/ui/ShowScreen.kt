@@ -1,5 +1,6 @@
 package com.mskd.flux.features.show.ui
 
+import com.mskd.flux.features.player.domain.model.PlayerParams
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -73,6 +74,7 @@ fun ShowScreen(
                 is ShowEvent.ReplaceShow -> replaceShow(event.artworkId)
                 is ShowEvent.NavigateToSeason -> navigate(Artwork(artworkId = event.artworkId, season = event.season, rgb = event.rgb))
                 is ShowEvent.NavigateToPerson -> navigate(Route.Person(person = event.person))
+                is ShowEvent.PlayMedia -> navigate(Route.Player(params = PlayerParams.fromMedia(event.media)))
                 is ShowEvent.NavigateToGallery -> navigate(Route.Gallery(artworkId = event.artworkId, contentType = event.contentType))
             }
         }

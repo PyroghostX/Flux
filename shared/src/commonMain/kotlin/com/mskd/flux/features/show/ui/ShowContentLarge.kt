@@ -1,29 +1,18 @@
 package com.mskd.flux.features.show.ui
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.mskd.flux.core.model.artwork.FullArtwork
 import com.mskd.flux.core.model.artwork.Person
-import com.mskd.flux.features.artwork.ui.composables.ArtworkImageFull
+import com.mskd.flux.core.model.artwork.shownBackdropPath
 import com.mskd.flux.features.artwork.ui.composables.ArtworkTitle
 import com.mskd.flux.features.artwork.ui.composables.GenresTags
 import com.mskd.flux.features.people.ui.components.people.PeopleList
@@ -32,16 +21,23 @@ import com.mskd.flux.features.show.ui.composables.SeasonItem
 import com.mskd.flux.mockups.MediaMockups
 import com.mskd.flux.mockups.PeopleMockup
 import com.mskd.flux.ui.LandscapePreview
-import com.mskd.flux.ui.media.OverviewItem
+import com.mskd.flux.ui.tablet.TabletDetailLayout
+import com.mskd.flux.ui.tablet.TabletOverview
+import com.mskd.flux.ui.tablet.TabletPlayButtons
+import com.mskd.flux.ui.tablet.TabletRowPadding
+import com.mskd.flux.ui.tablet.TabletRowTitle
+import com.mskd.flux.ui.tablet.episodeLabel
 import com.mskd.flux.ui.text.Text
 import com.mskd.flux.ui.theme.FluxTheme
 import com.mskd.flux.ui.theme.FluxUI
+import com.mskd.flux.utils.extensions.firstEpisodeToWatch
 import flux.shared.generated.resources.Res
 import flux.shared.generated.resources.no_summary
 import flux.shared.generated.resources.seasons
-import flux.shared.generated.resources.summary
 import org.jetbrains.compose.resources.stringResource
+import androidx.compose.material3.MaterialTheme
 
+/** Show page on a tablet: Play (next episode) top left, the seasons along the bottom. */
 @Composable
 fun ShowContentLarge(
     fullShow: FullArtwork.FullShow,
@@ -50,134 +46,70 @@ fun ShowContentLarge(
     sendIntent: (ShowIntent) -> Unit
 ) {
 
-    Row(
-        modifier = Modifier.fillMaxSize()
-    ) {
+    val nextEpisode = fullShow.episodes.filter { it.isAvailable }.firstEpisodeToWatch()
 
-        Box(modifier = Modifier.weight(.5f),) {
+    TabletDetailLayout(
+        backdropPath = fullShow.artwork.shownBackdropPath.ifBlank { fullShow.artwork.imagePath },
+        topPadding = scaffoldInnerPadding.calculateTopPadding(),
+        header = {
 
-            ArtworkImageFull(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clickable { sendIntent(ShowIntent.OnArtworkImageClick) },
-                fullArtwork = fullShow,
-                orientation = Orientation.Horizontal,
+            ArtworkTitle(
+                modifier = Modifier.clickable { sendIntent(ShowIntent.OnArtworkImageClick) },
+                artwork = fullShow.artwork,
             )
 
-        }
+            GenresTags(genres = fullShow.genres)
 
-        LazyVerticalGrid(
-            modifier = Modifier.weight(.5f),
-            columns = GridCells.Fixed(3),
-            horizontalArrangement = Arrangement.spacedBy(FluxUI.Space.small),
-            verticalArrangement = Arrangement.spacedBy(FluxUI.Space.small),
-            contentPadding = PaddingValues(horizontal = FluxUI.Space.medium)
-        ) {
-
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                Spacer(modifier = Modifier.height(scaffoldInnerPadding.calculateTopPadding()))
-            }
-
-            item(span = { GridItemSpan(maxLineSpan) }) {
-
-                ArtworkTitle(
-                    modifier = Modifier
-                        .padding(FluxUI.Space.medium)
-                        .wrapContentWidth(),
-                    artwork = fullShow.artwork,
+            if (nextEpisode != null) {
+                TabletPlayButtons(
+                    media = nextEpisode,
+                    label = nextEpisode.episodeLabel(),
+                    onPlay = { sendIntent(ShowIntent.PlayNext) },
                 )
-
             }
 
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                Spacer(modifier = Modifier.height(FluxUI.Space.large))
-            }
-
-            item(span = { GridItemSpan(maxLineSpan) }) {
-
-                OverviewItem(
-                    modifier = Modifier.padding(horizontal = FluxUI.Space.medium),
-                    title = stringResource(Res.string.summary),
-                    description = fullShow.artwork.description.ifEmpty { stringResource(Res.string.no_summary) },
-                    topDetails = { GenresTags(genres = fullShow.genres) }
-                )
-
-            }
-
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                Spacer(modifier = Modifier.height(FluxUI.Space.large))
-            }
-
-            item(span = { GridItemSpan(maxLineSpan) }) {
-
-                Text.Content.Title(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = FluxUI.Space.medium),
-                    text = stringResource(Res.string.seasons),
+            TabletOverview {
+                Text.Content.Body(
+                    text = fullShow.artwork.description.ifEmpty { stringResource(Res.string.no_summary) },
                     color = MaterialTheme.colorScheme.onBackground
                 )
-
             }
 
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                Spacer(modifier = Modifier.height(FluxUI.Space.medium))
-            }
+        },
+        bottomRow = {
 
-            items(
-                items = fullShow.seasons,
-                key = { it.id }
-            ) { season ->
+            Column {
 
-                Box(
-                    modifier = Modifier
-                        .animateItem()
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
+                TabletRowTitle(text = stringResource(Res.string.seasons))
+
+                LazyRow(
+                    contentPadding = TabletRowPadding,
+                    horizontalArrangement = Arrangement.spacedBy(FluxUI.Space.medium)
                 ) {
-
-                    SeasonItem(
-                        modifier = Modifier.width(FluxUI.Dimension.itemWidth),
-                        season = season,
-                        episodes = fullShow.episodes.filter { it.season == season.season },
-                        onClick = {
-                            sendIntent(
-                                ShowIntent.OnSeasonClick(
-                                    season = season.season,
-                                    rgb = it
-                                )
-                            )
-                        },
-                        onLongPress = { sendIntent(ShowIntent.ShowSeasonPreview(season = season)) }
-                    )
-
+                    items(items = fullShow.seasons, key = { it.id }) { season ->
+                        SeasonItem(
+                            modifier = Modifier.width(SEASON_WIDTH),
+                            season = season,
+                            episodes = fullShow.episodes.filter { it.season == season.season },
+                            onClick = { rgb -> sendIntent(ShowIntent.OnSeasonClick(season = season.season, rgb = rgb)) },
+                            onLongPress = { sendIntent(ShowIntent.ShowSeasonPreview(season = season)) }
+                        )
+                    }
                 }
-
 
             }
 
+        },
+        below = {
             if (people.isNotEmpty()) {
-
-                item(span = { GridItemSpan(maxLineSpan) }) {
-
-                    PeopleList(people = people, onClick = { sendIntent(ShowIntent.OnPersonClick(person = it)) })
-
-                }
-
+                item { PeopleList(people = people, onClick = { sendIntent(ShowIntent.OnPersonClick(person = it)) }) }
             }
-
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                Spacer(modifier = Modifier
-                    .padding(bottom = FluxUI.Space.bottomScreen)
-                    .height(scaffoldInnerPadding.calculateBottomPadding())
-                )
-            }
-
         }
-
-    }
+    )
 
 }
+
+private val SEASON_WIDTH = 150.dp
 
 @LandscapePreview
 @Composable

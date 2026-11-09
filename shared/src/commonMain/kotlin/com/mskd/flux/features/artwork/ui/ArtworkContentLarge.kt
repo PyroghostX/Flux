@@ -1,30 +1,22 @@
 package com.mskd.flux.features.artwork.ui
 
-import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.mskd.flux.core.model.artwork.Episode
 import com.mskd.flux.core.model.artwork.FullArtwork
 import com.mskd.flux.core.model.artwork.Media
 import com.mskd.flux.core.model.artwork.Person
+import com.mskd.flux.core.model.artwork.shownBackdropPath
 import com.mskd.flux.features.artwork.presentation.ArtworkIntent
 import com.mskd.flux.features.artwork.presentation.ArtworkOverviewContent
-import com.mskd.flux.features.artwork.ui.composables.ArtworkButtons
-import com.mskd.flux.features.artwork.ui.composables.ArtworkImage
 import com.mskd.flux.features.artwork.ui.composables.ArtworkOverview
 import com.mskd.flux.features.artwork.ui.composables.ArtworkTitle
 import com.mskd.flux.features.people.ui.components.people.PeopleList
@@ -32,7 +24,13 @@ import com.mskd.flux.mockups.MediaMockups
 import com.mskd.flux.mockups.PeopleMockup
 import com.mskd.flux.ui.LandscapePreview
 import com.mskd.flux.ui.media.episode.EpisodeDropDownMenu
-import com.mskd.flux.ui.media.episode.EpisodeItem
+import com.mskd.flux.ui.tablet.TabletDetailLayout
+import com.mskd.flux.ui.tablet.TabletEpisodeCard
+import com.mskd.flux.ui.tablet.TabletOverview
+import com.mskd.flux.ui.tablet.TabletPlayButtons
+import com.mskd.flux.ui.tablet.TabletRowPadding
+import com.mskd.flux.ui.tablet.TabletRowTitle
+import com.mskd.flux.ui.tablet.episodeLabel
 import com.mskd.flux.ui.text.Text
 import com.mskd.flux.ui.theme.FluxTheme
 import com.mskd.flux.ui.theme.FluxUI
@@ -40,6 +38,7 @@ import flux.shared.generated.resources.Res
 import flux.shared.generated.resources.episodes
 import org.jetbrains.compose.resources.stringResource
 
+/** Movie or season page on a tablet: Play top left, a season's episodes along the bottom. */
 @Composable
 fun ArtworkContentLarge(
     fullArtwork: FullArtwork,
@@ -57,162 +56,113 @@ fun ArtworkContentLarge(
     sendIntent: (ArtworkIntent) -> Unit,
 ) {
 
-    Row(
-        modifier = Modifier.fillMaxSize()
-    ) {
+    val episodes = (fullArtwork as? FullArtwork.FullShow)
+        ?.episodes
+        ?.filter { it.season == selectedSeason }
+        ?.sortedBy { it.number }
+        .orEmpty()
 
-        Box(modifier = Modifier.weight(.5f),) {
+    TabletDetailLayout(
+        backdropPath = fullArtwork.artwork.shownBackdropPath.ifBlank { fullArtwork.artwork.imagePath },
+        topPadding = scaffoldInnerPadding.calculateTopPadding(),
+        header = {
 
-            ArtworkImage(
-                modifier = Modifier.fillMaxSize(),
-                fullArtwork = fullArtwork,
-                currentMedia = selectedMedia,
-                selectedSeason = selectedSeason,
-                orientation = Orientation.Horizontal,
-                isBlurred = isArtworkImageBlurred,
-                onClick = { sendIntent(ArtworkIntent.OnArtworkImageClick) }
-            )
-
-        }
-
-        LazyColumn(
-            modifier = Modifier.weight(.5f),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            contentPadding = PaddingValues(horizontal = FluxUI.Space.medium)
-        ) {
-
-            item {
-                Spacer(modifier = Modifier.height(scaffoldInnerPadding.calculateTopPadding()))
-            }
-
-            item {
-
-                when (fullArtwork) {
-                    is FullArtwork.FullMovie -> ArtworkTitle(
-                        modifier = Modifier.wrapContentWidth(),
-                        artwork = fullArtwork.artwork,
+            when (fullArtwork) {
+                is FullArtwork.FullMovie -> ArtworkTitle(
+                    modifier = Modifier.clickable { sendIntent(ArtworkIntent.OnArtworkImageClick) },
+                    artwork = fullArtwork.artwork,
+                )
+                is FullArtwork.FullShow -> Column {
+                    Text.Content.Title(
+                        text = fullArtwork.artwork.title,
+                        color = MaterialTheme.colorScheme.onBackground,
                     )
-                    is FullArtwork.FullShow -> Text.MainTitle(
-                        modifier = Modifier.wrapContentWidth(),
+                    Text.MainTitle(
                         text = fullArtwork.seasons.find { it.season == selectedSeason }?.title ?: fullArtwork.artwork.title,
                         color = MaterialTheme.colorScheme.onBackground,
                     )
                 }
-
             }
 
-            item {
-                Spacer(modifier = Modifier.height(FluxUI.Space.large))
-            }
+            TabletPlayButtons(
+                media = selectedMedia,
+                label = selectedMedia.episodeLabel(),
+                onPlay = { sendIntent(ArtworkIntent.PlayMedia(media = selectedMedia)) },
+                onToggleWatched = { sendIntent(ArtworkIntent.ChangeWatchStatus(media = selectedMedia)) },
+            )
 
-            item {
-
-                ArtworkButtons(
-                    media = selectedMedia,
-                    sendIntent = sendIntent
-                )
-
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(FluxUI.Space.large))
-            }
-
-            item {
-
+            TabletOverview {
                 ArtworkOverview(
                     overview = overview,
                     isSpoiler = isOverviewSpoiler,
                     isBlurred = isOverviewBlurred,
                     onToggleSpoiler = { sendIntent(ArtworkIntent.ToggleOverviewSpoiler) },
                 )
-
             }
 
-            item {
-                Spacer(modifier = Modifier.height(FluxUI.Space.large))
+        },
+        bottomRow = if (episodes.isEmpty()) null else {
+            {
+                EpisodesRow(
+                    episodes = episodes,
+                    selectedMedia = selectedMedia,
+                    blurredEpisodeIds = blurredEpisodeIds,
+                    sendIntent = sendIntent,
+                )
             }
-
-            (fullArtwork as? FullArtwork.FullShow)?.let { show ->
-
-                val episodes = show.episodes.filter { it.season == selectedSeason }
-
-                if (episodes.isNotEmpty()) {
-
-                    item {
-
-                        Column(verticalArrangement = Arrangement.spacedBy(FluxUI.Space.small)) {
-
-                            Text.Content.Title(
-                                modifier = Modifier.fillMaxWidth(),
-                                text = stringResource(Res.string.episodes),
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-
-                        }
-
-                    }
-
-                    item {
-                        Spacer(modifier = Modifier.height(FluxUI.Space.medium))
-                    }
-
-                    items(
-                        items = episodes.sortedBy { it.number },
-                        key = { e -> e.id to e.currentTime}
-                    ) { episode ->
-
-                        EpisodeItem(
-                            modifier = Modifier.animateItem(),
-                            episode = episode,
-                            isSelected = episode.id == selectedMedia.mediaId,
-                            isExpanded = episode.id == expandedEpisodeId,
-                            isBlurred = episode.id in blurredEpisodeIds,
-                            isSpoiler = episode.id in spoilerEpisodeIds,
-                            onToggleSpoiler = { sendIntent(ArtworkIntent.ToggleEpisodeSpoiler(episode = episode)) },
-                            onClick = { sendIntent(ArtworkIntent.PlayMedia(media = episode)) },
-                            onReadMoreTap = {
-                                if (it) {
-                                    sendIntent(ArtworkIntent.ExpandEpisodeDescription(episode = episode))
-                                } else {
-                                    sendIntent(ArtworkIntent.CollapseEpisodeDescription)
-                                }
-                            },
-                            dropDownMenu = { isVisible, onDismissRequest ->
-                                EpisodeDropDownMenu(
-                                    isVisible = isVisible,
-                                    episode = episode,
-                                    onDismissRequest = onDismissRequest,
-                                    sendIntent = sendIntent
-                                )
-                            }
-                        )
-
-                        Spacer(modifier = Modifier.height(FluxUI.Space.small))
-
-                    }
-
-                }
-
-            }
-
+        },
+        below = {
             if (people.isNotEmpty()) {
                 item { PeopleList(people = people, onClick = { sendIntent(ArtworkIntent.OnPersonClick(person = it)) }) }
             }
+        }
+    )
 
-            item {
-                Spacer(modifier = Modifier
-                    .padding(bottom = FluxUI.Space.bottomScreen)
-                    .height(scaffoldInnerPadding.calculateBottomPadding())
+}
+
+/** The season's episodes in one sideways row, starting at the selected one; tap plays, long press opens the menu. */
+@Composable
+private fun EpisodesRow(
+    episodes: List<Episode>,
+    selectedMedia: Media,
+    blurredEpisodeIds: Set<Long>,
+    sendIntent: (ArtworkIntent) -> Unit,
+) {
+
+    val listState = rememberLazyListState(
+        initialFirstVisibleItemIndex = episodes.indexOfFirst { it.id == selectedMedia.mediaId }.coerceAtLeast(0)
+    )
+
+    Column {
+
+        TabletRowTitle(text = stringResource(Res.string.episodes))
+
+        LazyRow(
+            state = listState,
+            contentPadding = TabletRowPadding,
+            horizontalArrangement = Arrangement.spacedBy(FluxUI.Space.medium)
+        ) {
+            items(items = episodes, key = { it.id }) { episode ->
+                TabletEpisodeCard(
+                    episode = episode,
+                    isSelected = episode.id == selectedMedia.mediaId,
+                    isBlurred = episode.id in blurredEpisodeIds,
+                    onClick = { sendIntent(ArtworkIntent.PlayMedia(media = episode)) },
+                    dropDownMenu = { isVisible, onDismissRequest ->
+                        EpisodeDropDownMenu(
+                            isVisible = isVisible,
+                            episode = episode,
+                            onDismissRequest = onDismissRequest,
+                            sendIntent = sendIntent
+                        )
+                    }
                 )
             }
-
         }
 
     }
 
 }
-
 
 @LandscapePreview
 @Composable

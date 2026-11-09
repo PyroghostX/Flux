@@ -16,6 +16,7 @@ import com.mskd.flux.features.people.domain.usecase.GetPeopleUseCase
 import com.mskd.flux.features.progress.domain.usecase.ResetProgressUseCase
 import com.mskd.flux.features.token.domain.datastore.TokenDataStore
 import com.mskd.flux.mockups.MediaMockups
+import com.mskd.flux.utils.extensions.firstEpisodeToWatch
 import com.mskd.flux.mockups.PeopleMockup
 import com.mskd.flux.system.UrlLauncher
 import io.kotest.core.spec.style.FunSpec
@@ -133,6 +134,22 @@ class ShowViewModelTest : FunSpec({
             event.artworkId shouldBe MediaMockups.showArtwork.id
             event.season shouldBe 2
             event.rgb shouldBe 12345
+        }
+    }
+
+    test("play next plays the next episode to watch") {
+        viewModel.uiState.test {
+            // Play next reads the loaded show: wait for it
+            while (awaitItem().state !is State.Content) Unit
+
+            viewModel.event.test {
+                viewModel.handleIntent(ShowIntent.PlayNext)
+                val event = awaitItem()
+                event.shouldBeInstanceOf<ShowEvent.PlayMedia>()
+                event.media shouldBe MediaMockups.fullShow.episodes.filter { it.isAvailable }.firstEpisodeToWatch()
+            }
+
+            cancelAndIgnoreRemainingEvents()
         }
     }
 

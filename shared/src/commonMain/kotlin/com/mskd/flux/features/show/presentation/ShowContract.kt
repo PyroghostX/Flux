@@ -1,5 +1,6 @@
 package com.mskd.flux.features.show.presentation
 
+import com.mskd.flux.core.model.artwork.Media
 import androidx.compose.runtime.Immutable
 import com.mskd.flux.core.model.artwork.ContentType
 import com.mskd.flux.core.model.artwork.FullArtwork
@@ -34,6 +35,8 @@ sealed class ShowIntent {
     object OnBackTap: ShowIntent()
     data class OnSeasonClick(val season: Int, val rgb: Int?) : ShowIntent()
     data class OnPersonClick(val person: Person) : ShowIntent()
+    /** Plays the next Episode to watch: the one in progress, else the first not watched. */
+    data object PlayNext : ShowIntent()
     data object OnArtworkImageClick : ShowIntent()
 
     // Dialogs
@@ -54,6 +57,7 @@ sealed class ShowEvent {
     object BackToPreviousScreen : ShowEvent()
     data class NavigateToSeason(val artworkId: Long, val season: Int, val rgb: Int?) : ShowEvent()
     data class NavigateToPerson(val person: Person) : ShowEvent()
+    data class PlayMedia(val media: Media) : ShowEvent()
     data class NavigateToGallery(val artworkId: Long, val contentType: ContentType) : ShowEvent()
     /** Replaces the page by the one of [artworkId]: back must not lead to the previous Show, which may no longer exist. */
     data class ReplaceShow(val artworkId: Long) : ShowEvent()
