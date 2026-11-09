@@ -46,7 +46,9 @@ fun ShowContentLarge(
     sendIntent: (ShowIntent) -> Unit
 ) {
 
+    // Fall back to any episode so the button still shows (as "Content unavailable") when the files can't be reached
     val nextEpisode = fullShow.episodes.filter { it.isAvailable }.firstEpisodeToWatch()
+        ?: fullShow.episodes.firstEpisodeToWatch()
 
     TabletDetailLayout(
         backdropPath = fullShow.artwork.shownBackdropPath.ifBlank { fullShow.artwork.imagePath },

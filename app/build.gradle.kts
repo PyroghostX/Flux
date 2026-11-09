@@ -38,7 +38,7 @@ configure<ApplicationExtension> {
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 40
-        versionName = "1.9.1-car.2"
+        versionName = "1.9.1-car.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
