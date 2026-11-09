@@ -188,6 +188,10 @@
     <string name="got_it">Got it</string>
     <string name="content_unavailable">Content unavailable</string>
     <string name="open_in_file_explorer">Open in file explorer</string>
+    <string name="delete_file">Delete from drive</string>
+    <string name="delete_file_confirmation">Delete %1$s from the drive? The video file is erased and this can't be undone.</string>
+    <string name="delete_file_failed">Couldn't delete the file. Remove the folder in Sources and add it again, then try again.</string>
+    <string name="more_actions">More</string>
     <string name="next">Next</string>
     <string name="folder_deleted">Folder deleted</string>
     <string name="undo">Undo</string>

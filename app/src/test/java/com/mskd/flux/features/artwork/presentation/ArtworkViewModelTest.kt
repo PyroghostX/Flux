@@ -38,6 +38,7 @@ import io.kotest.property.Exhaustive
 import io.kotest.property.arbitrary.element
 import io.kotest.property.checkAll
 import io.kotest.property.exhaustive.boolean
+import com.mskd.flux.features.artwork.domain.usecase.DeleteMediaFileUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -65,6 +66,7 @@ class ArtworkViewModelTest : FunSpec({
     lateinit var resetProgress: ResetProgressUseCase
     lateinit var resolvePlaybackAction: ResolvePlaybackActionUseCase
     lateinit var recordPlaybackResult: SaveProgressUseCase
+    lateinit var deleteMediaFile: DeleteMediaFileUseCase
     lateinit var token: MutableStateFlow<String>
     lateinit var syncState: MutableStateFlow<SyncState>
 
@@ -79,6 +81,7 @@ class ArtworkViewModelTest : FunSpec({
         resetProgress = mockk(relaxed = true)
         resolvePlaybackAction = mockk(relaxed = true)
         recordPlaybackResult = mockk(relaxed = true)
+        deleteMediaFile = mockk(relaxed = true)
 
 
         viewModel = ArtworkViewModel(
@@ -95,7 +98,8 @@ class ArtworkViewModelTest : FunSpec({
             resolvePlaybackAction = resolvePlaybackAction,
             recordPlaybackResult = recordPlaybackResult,
             filesLauncher = filesLauncher,
-            urlLauncher = urlLauncher
+            urlLauncher = urlLauncher,
+            deleteMediaFile = deleteMediaFile
         )
 
     }
@@ -364,6 +368,50 @@ class ArtworkViewModelTest : FunSpec({
 
             cancelAndConsumeRemainingEvents()
 
+        }
+
+    }
+
+    test("delete file - asks first, then deletes the movie and leaves the page") {
+
+        updateVm(MediaMockups.movieArtwork.id)
+        coEvery { deleteMediaFile(any()) } returns true
+
+        viewModel.uiState.test {
+
+            val content = (expectMostRecentItem().state as State.Content).content
+            val media = content.selectedMedia
+
+            viewModel.handleIntent(ArtworkIntent.ShowDeleteFileDialog(media = media))
+            (awaitItem().state as State.Content).content.dialog shouldBe ArtworkDialog.DeleteFileConfirmation(media = media)
+
+            viewModel.event.test {
+                viewModel.handleIntent(ArtworkIntent.DeleteFile(media = media))
+                awaitItem() shouldBe ArtworkEvent.BackToPreviousScreen
+            }
+
+            coVerify { deleteMediaFile(match { it.mediaId == media.mediaId }) }
+            cancelAndConsumeRemainingEvents()
+        }
+
+    }
+
+    test("delete file - a failure is reported and the page stays") {
+
+        updateVm(MediaMockups.movieArtwork.id)
+        coEvery { deleteMediaFile(any()) } returns false
+
+        viewModel.uiState.test {
+
+            val media = (expectMostRecentItem().state as State.Content).content.selectedMedia
+
+            viewModel.event.test {
+                viewModel.handleIntent(ArtworkIntent.DeleteFile(media = media))
+                awaitItem() shouldBe ArtworkEvent.DeleteFileFailed
+                expectNoEvents()
+            }
+
+            cancelAndConsumeRemainingEvents()
         }
 
     }

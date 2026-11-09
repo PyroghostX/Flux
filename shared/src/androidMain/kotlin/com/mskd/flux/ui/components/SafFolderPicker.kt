@@ -20,7 +20,8 @@ fun rememberSafFolderPicker(
 
         context.contentResolver.takePersistableUriPermission(
             uri,
-            Intent.FLAG_GRANT_READ_URI_PERMISSION,
+            // Write too: Delete from drive erases files in the folder
+            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
         )
 
         onFolderPicked(uri)

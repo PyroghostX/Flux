@@ -59,6 +59,7 @@ sealed class ArtworkDialog {
     data class EpisodeStatusConfirmation(val episode: Episode) : ArtworkDialog()
     object ResetProgressConfirmation : ArtworkDialog()
     data object Identification : ArtworkDialog()
+    data class DeleteFileConfirmation(val media: Media) : ArtworkDialog()
 }
 
 sealed interface ArtworkIntent {
@@ -75,6 +76,8 @@ sealed interface ArtworkIntent {
     data object CloseDialog: ArtworkIntent
     data object ShowResetProgressDialog : ArtworkIntent
     data object ShowIdentificationDialog : ArtworkIntent
+    data class ShowDeleteFileDialog(val media: Media) : ArtworkIntent
+    data class DeleteFile(val media: Media) : ArtworkIntent
 
     // Manual identification
     data class OnIdentified(val artworkId: Long) : ArtworkIntent
@@ -94,6 +97,7 @@ sealed interface ArtworkIntent {
 
 sealed interface ArtworkEvent {
     object BackToPreviousScreen : ArtworkEvent
+    data object DeleteFileFailed : ArtworkEvent
     data class PlayMedia(val media: Media, val externalPlayer: Boolean) : ArtworkEvent
     data class NavigateToPerson(val person: Person) : ArtworkEvent
     data class NavigateToGallery(val artworkId: Long, val contentType: ContentType) : ArtworkEvent

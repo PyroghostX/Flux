@@ -11,6 +11,8 @@ import com.mskd.flux.features.artwork.presentation.ArtworkIntent
 import com.mskd.flux.ui.modal.menu.FluxPopUpMenu
 import com.mskd.flux.ui.modal.menu.FluxPopUpMenuItem
 import flux.shared.generated.resources.Res
+import flux.shared.generated.resources.delete_file
+import flux.shared.generated.resources.ic_delete
 import flux.shared.generated.resources.ic_file_explorer
 import flux.shared.generated.resources.ic_play
 import flux.shared.generated.resources.ic_replay
@@ -103,6 +105,22 @@ fun EpisodeDropDownMenu(
                 },
             )
         )
+
+        // Delete the file (asks first)
+        if (episode.isAvailable) {
+            add(
+                FluxPopUpMenuItem(
+                    text = stringResource(Res.string.delete_file),
+                    onClick = {
+                        sendIntent(ArtworkIntent.ShowDeleteFileDialog(media = episode))
+                        onDismissRequest()
+                    },
+                    leadingIcon = {
+                        Icon(painter = painterResource(Res.drawable.ic_delete), contentDescription = null)
+                    },
+                )
+            )
+        }
 
     }
 

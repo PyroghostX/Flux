@@ -7,6 +7,7 @@ val moduleSystemAndroid = module {
     single<EmailLauncher> { AndroidEmailLauncher(get()) }
     single<FilesLauncher> { AndroidFilesLauncher(get()) }
     single<ImageSaver> { AndroidImageSaver(get()) }
+    single<MediaFileRemover> { AndroidMediaFileRemover(get()) }
     single<UrlLauncher> { AndroidUrlLauncher(get()) }
 
 }

@@ -1,5 +1,6 @@
 package com.mskd.flux.features.artwork.presentation
 
+import com.mskd.flux.features.artwork.domain.usecase.DeleteMediaFileUseCase
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mskd.flux.core.model.artwork.Episode
@@ -52,7 +53,8 @@ class ArtworkViewModel(
     private val markPreviousAsWatched: MarkPreviousAsWatchedUseCase,
     private val resetProgress: ResetProgressUseCase,
     private val resolvePlaybackAction: ResolvePlaybackActionUseCase,
-    private val recordPlaybackResult: SaveProgressUseCase
+    private val recordPlaybackResult: SaveProgressUseCase,
+    private val deleteMediaFile: DeleteMediaFileUseCase,
 ) : ViewModel() {
 
     //region Computed properties
@@ -131,6 +133,8 @@ class ArtworkViewModel(
             ArtworkIntent.CloseDialog -> closeDialog()
             ArtworkIntent.ShowResetProgressDialog -> showResetProgressDialog()
             ArtworkIntent.ShowIdentificationDialog -> showIdentificationDialog()
+            is ArtworkIntent.ShowDeleteFileDialog -> _userState.update { it.copy(dialog = ArtworkDialog.DeleteFileConfirmation(media = intent.media)) }
+            is ArtworkIntent.DeleteFile -> deleteFile(media = intent.media)
 
             // Manual identification
             is ArtworkIntent.OnIdentified -> onIdentified(artworkId = intent.artworkId)
@@ -380,6 +384,25 @@ class ArtworkViewModel(
 
         }
 
+    }
+
+    /** Erases the file; leaves the page when nothing is left on it (a movie, or a season's last episode). */
+    private suspend fun deleteFile(media: Media) {
+        val leavesPage = media !is Episode || episodes.none { it.season == media.season && it.id != media.id }
+
+        _userState.update { state ->
+            state.copy(
+                dialog = null,
+                selectedMedia = state.selectedMedia.takeIf { it?.mediaId != media.mediaId }
+            )
+        }
+
+        if (!deleteMediaFile(media)) {
+            _event.emit(ArtworkEvent.DeleteFileFailed)
+            return
+        }
+
+        if (leavesPage) _event.emit(ArtworkEvent.BackToPreviousScreen)
     }
 
     private fun closeDialog() {

@@ -28,7 +28,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -63,6 +66,7 @@ import flux.shared.generated.resources.ic_play
 import flux.shared.generated.resources.ic_replay
 import flux.shared.generated.resources.mark_as_not_watched
 import flux.shared.generated.resources.mark_as_watched
+import flux.shared.generated.resources.more_actions
 import flux.shared.generated.resources.play
 import flux.shared.generated.resources.remaining_time
 import flux.shared.generated.resources.resume
@@ -187,7 +191,10 @@ fun TabletPlayButtons(
     label: String? = null,
     onPlay: () -> Unit,
     onToggleWatched: (() -> Unit)? = null,
+    moreMenu: (@Composable (isVisible: Boolean, onDismissRequest: () -> Unit) -> Unit)? = null,
 ) {
+
+    var showMore by remember { mutableStateOf(false) }
 
     val text = when (media.status) {
         Status.WATCHED -> stringResource(Res.string.rewatch)
@@ -259,6 +266,20 @@ fun TabletPlayButtons(
                         fontSize = 16.sp,
                         maxLines = 1
                     )
+                }
+            }
+
+            if (moreMenu != null) {
+                OutlinedIconButton(
+                    modifier = Modifier.size(56.dp),
+                    onClick = { showMore = true }
+                ) {
+                    Icon(
+                        modifier = Modifier.size(28.dp),
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = stringResource(Res.string.more_actions)
+                    )
+                    moreMenu(showMore) { showMore = false }
                 }
             }
 

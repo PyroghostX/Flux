@@ -1,5 +1,11 @@
 package com.mskd.flux.screens.artwork
 
+import flux.shared.generated.resources.delete_file_failed
+import flux.shared.generated.resources.delete_file_confirmation
+import flux.shared.generated.resources.delete_file
+import flux.shared.generated.resources.delete
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -66,6 +72,8 @@ fun ArtworkScreen(
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val deleteFailedText = stringResource(Res.string.delete_file_failed)
 
     val launchExternalPlayer = rememberExternalPlayerAction(
         onProgressResult = { progress -> viewModel.handleIntent(ArtworkIntent.OnExternalPlayerResult(progress = progress)) },
@@ -76,6 +84,7 @@ fun ArtworkScreen(
         viewModel.event.collect { event ->
             when (event) {
                 ArtworkEvent.BackToPreviousScreen -> onBack()
+                ArtworkEvent.DeleteFileFailed -> Toast.makeText(context, deleteFailedText, Toast.LENGTH_LONG).show()
                 is ArtworkEvent.ReplaceArtwork -> replaceArtwork(event.artworkId)
                 is ArtworkEvent.NavigateToPerson -> navigate(Route.Person(person = event.person))
                 is ArtworkEvent.NavigateToGallery -> navigate(Route.Gallery(artworkId = event.artworkId, contentType = event.contentType))
@@ -245,6 +254,18 @@ fun ArtworkScreenContent(
             artworkId = fullArtwork.artwork.id,
             onDismiss = { sendIntent(ArtworkIntent.CloseDialog) },
             onIdentified = { artworkId -> sendIntent(ArtworkIntent.OnIdentified(artworkId = artworkId)) },
+        )
+    }
+
+    (dialog as? ArtworkDialog.DeleteFileConfirmation)?.let { confirmation ->
+        FluxDialog(
+            title = stringResource(Res.string.delete_file),
+            onValidateLabel = stringResource(Res.string.delete),
+            onValidate = { sendIntent(ArtworkIntent.DeleteFile(media = confirmation.media)) },
+            onDismiss = { sendIntent(ArtworkIntent.CloseDialog) },
+            content = {
+                Text.Content.Body(text = stringResource(Res.string.delete_file_confirmation, confirmation.media.file.name))
+            }
         )
     }
 

@@ -35,7 +35,13 @@ import com.mskd.flux.ui.text.Text
 import com.mskd.flux.ui.theme.FluxTheme
 import com.mskd.flux.ui.theme.FluxUI
 import flux.shared.generated.resources.Res
+import flux.shared.generated.resources.delete_file
 import flux.shared.generated.resources.episodes
+import flux.shared.generated.resources.ic_delete
+import org.jetbrains.compose.resources.painterResource
+import androidx.compose.material3.Icon
+import com.mskd.flux.ui.modal.menu.FluxPopUpMenu
+import com.mskd.flux.ui.modal.menu.FluxPopUpMenuItem
 import org.jetbrains.compose.resources.stringResource
 
 /** Movie or season page on a tablet: Play top left, a season's episodes along the bottom. */
@@ -89,6 +95,24 @@ fun ArtworkContentLarge(
                 label = selectedMedia.episodeLabel(),
                 onPlay = { sendIntent(ArtworkIntent.PlayMedia(media = selectedMedia)) },
                 onToggleWatched = { sendIntent(ArtworkIntent.ChangeWatchStatus(media = selectedMedia)) },
+                moreMenu = { isVisible, onDismissRequest ->
+                    FluxPopUpMenu(
+                        isVisible = isVisible,
+                        onDismissRequest = onDismissRequest,
+                        items = listOfNotNull(
+                            FluxPopUpMenuItem(
+                                text = stringResource(Res.string.delete_file),
+                                onClick = {
+                                    onDismissRequest()
+                                    sendIntent(ArtworkIntent.ShowDeleteFileDialog(media = selectedMedia))
+                                },
+                                leadingIcon = {
+                                    Icon(painter = painterResource(Res.drawable.ic_delete), contentDescription = null)
+                                },
+                            ).takeIf { selectedMedia.isAvailable }
+                        )
+                    )
+                },
             )
 
             TabletOverview {

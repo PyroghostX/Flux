@@ -3,6 +3,7 @@ package com.mskd.flux.features.artwork
 import com.mskd.flux.features.artwork.domain.usecase.observeArtwork.ObserveArtworkUseCase
 import com.mskd.flux.features.artwork.domain.usecase.observeArtwork.ObserveArtworkUseCaseImpl
 import com.mskd.flux.features.artwork.presentation.ArtworkViewModel
+import com.mskd.flux.features.artwork.domain.usecase.DeleteMediaFileUseCase
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
@@ -15,6 +16,8 @@ val moduleArtwork = module {
             sourcesUseCase = get()
         )
     }
+
+    single { DeleteMediaFileUseCase(remover = get(), database = get()) }
 
     viewModel<ArtworkViewModel> { params ->
         ArtworkViewModel(
@@ -31,7 +34,8 @@ val moduleArtwork = module {
             observeArtworkUseCase = get(),
             getPeopleUseCase = get(),
             resolvePlaybackAction = get(),
-            recordPlaybackResult = get()
+            recordPlaybackResult = get(),
+            deleteMediaFile = get()
         )
     }
 
